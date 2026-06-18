@@ -8,31 +8,41 @@ dotenv.config();
 const PORT = process.env.PORT;
 const NODE_ENV = process.env.NODE_ENV;
 
+console.log('[Server] Configuration:', {
+  port: PORT,
+  environment: NODE_ENV,
+});
+
 const start = async (): Promise<void> => {
   try {
-    console.log(`Initializing in mode ${NODE_ENV}...`);
+    console.log('[Server] Starting initialization');
 
     await connectDB();
+
+    console.log('[Server] Database connection ready');
 
     const server = createServer(app);
 
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log('[Server] Listening:', {
+        port: PORT,
+        environment: NODE_ENV,
+      });
     });
 
     const gracefulShutdown = async (): Promise<void> => {
-      console.log('Shutting down server...');
+      console.log('[Server] Shutdown requested');
+
       server.close(() => {
-        console.log('Server closed.');
+        console.log('[Server] Closed successfully');
         process.exit(0);
       });
     };
 
     process.on('SIGINT', gracefulShutdown);
     process.on('SIGTERM', gracefulShutdown);
-
   } catch (err) {
-    console.error('Error initializing server:', err);
+    console.error('[Server] Initialization error:', err);
     process.exit(1);
   }
 };
