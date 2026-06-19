@@ -3,8 +3,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import loginRouter from './routes/loginRoutes/loginRoutes.js';
-import logoutRouter from './routes/logoutRoutes/logoutRoutes.js';
+import loginRouter from './routes/loginRouter/loginRoutes/loginRoutes.js';
+import logoutRouter from './routes/loginRouter/logoutRoutes/logoutRoutes.js';
+import userRouter from './routes/userInformationRouter/userInformationRoutes.js';
 
 dotenv.config();
 
@@ -47,6 +48,6 @@ app.get('/health', (req, res) => {
 
 app.use('/login', loginRouter);
 app.use('/logout', logoutRouter);
-
+app.use('/user', userRouter);
 
 export default app;
