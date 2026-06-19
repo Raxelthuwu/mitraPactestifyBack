@@ -1,10 +1,10 @@
-export interface User {
+export interface LoginUserData {
   id_user: number;
   id_role: number;
   name: string;
   password: string;
   email: string;
-  cc: bigint;
-  phone: bigint | null;
+  cc: string;
   active: boolean;
+  type_rol: string;
 }

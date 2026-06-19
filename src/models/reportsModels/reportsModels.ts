@@ -3,8 +3,6 @@ import { pool } from '../../config/database.js';
 
 export class reportsModels{
 
-
-
 async createReport(
   id_asignation: number,
   number_table: number,
@@ -59,7 +57,7 @@ async getReportsByTableAndPlace(number_table: number, id_place: number): Promise
          WHEN 3 THEN 'alto'
        END AS severity,
        u.name AS testigo,
-       r.created_at AS "createdAt"
+       TO_CHAR(r.created_at, 'HH24:MI') AS hora
      FROM testify.reports r
      JOIN testify.asignations a ON r.id_asignation = a.id_asignation
      JOIN testify.vote_places vp ON a.id_place = vp.id_place

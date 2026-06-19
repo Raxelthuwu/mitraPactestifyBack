@@ -1,39 +1,52 @@
 import { pool } from '../../config/database.js';
 
 export class logouthModel {
-  async setUserActive(email: string, cc: bigint): Promise<boolean> {
-    console.log('[logouthModel.setUserActive] Input:', { email, cc: cc.toString() });
+  //1
+  async setUserActive(id_user: number): Promise<boolean> {
+    console.log('[logouthModel.setUserInactiveById] Input:', { id_user });
 
     const result = await pool.query(
       `UPDATE testify.users
-       SET active = true
-       WHERE email = $1 AND cc = $2`,
-      [email, cc]
+      SET active = true
+      WHERE id_user = $1`,
+      [id_user]
     );
 
     const success = result.rowCount === 1;
 
-    console.log('[logouthModel.setUserActive] Rows affected:', result.rowCount);
-    console.log('[logouthModel.setUserActive] Return:', success);
+    console.log('[logouthModel.setUserActiveById] Rows affected:', result.rowCount);
+    console.log('[logouthModel.setUserActiveById] Return:', success);
 
     return success;
   }
 
-  async setUserInactive(email: string, cc: bigint): Promise<boolean> {
-    console.log('[logouthModel.setUserInactive] Input:', { email, cc: cc.toString() });
 
-    const result = await pool.query(
-      `UPDATE testify.users
-       SET active = true
-       WHERE email = $1 AND cc = $2`,
-      [email, cc]
-    );
+  //2
+  async revokeToken(token: string, expires_at: Date): Promise<boolean> {
+  console.log('[logouthModel.revokeToken] Input:', {
+    token: token ? '[PROVIDED]' : '[MISSING]',
+    expires_at,
+  });
 
-    const success = result.rowCount === 1;
+  const result = await pool.query(
+    `INSERT INTO testify.revoked_tokens (token, expires_at)
+     VALUES ($1, $2)
+     ON CONFLICT (token) DO NOTHING`,
+    [token, expires_at]
+  );
 
-    console.log('[logouthModel.setUserInactive] Rows affected:', result.rowCount);
-    console.log('[logouthModel.setUserInactive] Return:', success);
+  const success = result.rowCount === 1;
 
-    return success;
-  }
+  console.log('[logouthModel.revokeToken] Rows affected:', result.rowCount);
+  console.log('[logouthModel.revokeToken] Return:', success);
+
+  return success;
+}
+
+
+
+
+
+
+
 }

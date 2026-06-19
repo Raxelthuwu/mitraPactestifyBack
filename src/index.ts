@@ -11,6 +11,8 @@ const NODE_ENV = process.env.NODE_ENV;
 console.log('[Server] Configuration:', {
   port: PORT,
   environment: NODE_ENV,
+  timezone: process.env.TZ ?? '[NOT_SET]',
+  currentDate: new Date().toString(),
 });
 
 const start = async (): Promise<void> => {
@@ -27,6 +29,7 @@ const start = async (): Promise<void> => {
       console.log('[Server] Listening:', {
         port: PORT,
         environment: NODE_ENV,
+        timezone: process.env.TZ ?? '[NOT_SET]',
       });
     });
 

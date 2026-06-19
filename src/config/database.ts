@@ -11,6 +11,7 @@ console.log('[Database] Configuration:', {
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD ? '[HIDDEN]' : '[NOT_SET]',
+  timezone: process.env.TZ ?? 'America/Bogota',
 });
 
 export const pool = new Pool({
@@ -19,6 +20,7 @@ export const pool = new Pool({
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
+  options: `-c timezone=${process.env.TZ ?? 'America/Bogota'}`,
 });
 
 export const connectDB = async (): Promise<void> => {
@@ -28,6 +30,10 @@ export const connectDB = async (): Promise<void> => {
     const client = await pool.connect();
 
     console.log('[Database.connectDB] Connection successful');
+
+    const timezoneResult = await client.query('SHOW timezone');
+
+    console.log('[Database.connectDB] Database timezone:', timezoneResult.rows[0]?.TimeZone);
 
     client.release();
 
