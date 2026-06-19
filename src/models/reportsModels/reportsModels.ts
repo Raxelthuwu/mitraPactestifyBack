@@ -3,43 +3,38 @@ import { pool } from '../../config/database.js';
 
 export class reportsModels{
 
-async createReport(
-  id_asignation: number,
-  number_table: number,
-  report: string,
-  problem_grade: number,
-  client_uuid: string,
-  created_at: string
-): Promise<boolean> {
-  console.log('[createReport] Input:', {
-    id_asignation,
-    number_table,
-    report,
-    problem_grade,
-    client_uuid,
-    created_at,
-  });
+  async createReport(
+    id_asignation: number,
+    number_table: number,
+    report: string,
+    problem_grade: number,
+    client_uuid?: string
+  ): Promise<boolean> {
+    console.log('[createReport] Input:', {
+      id_asignation,
+      number_table,
+      report,
+      problem_grade,
+      client_uuid,
+    });
 
-  const result = await pool.query(
-    `INSERT INTO testify.reports (
-       id_asignation,
-       number_table,
-       report,
-       problem_grade,
-       client_uuid,
-       created_at
-     )
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [id_asignation, number_table, report, problem_grade, client_uuid, created_at]
-  );
+    const result = await pool.query(
+      `INSERT INTO testify.reports (
+        id_asignation,
+        number_table,
+        report,
+        problem_grade,
+        client_uuid
+      )
+      VALUES ($1, $2, $3, $4, $5)`,
+      [id_asignation, number_table, report, problem_grade, client_uuid ?? null]
+    );
 
-  const success = result.rowCount === 1;
-
-  console.log('[createReport] Rows affected:', result.rowCount);
-  console.log('[createReport] Return:', success);
-
-  return success;
-}
+    const success = result.rowCount === 1;
+    console.log('[createReport] Rows affected:', result.rowCount);
+    console.log('[createReport] Return:', success);
+    return success;
+  }
 
 async getReportsByTableAndPlace(number_table: number, id_place: number): Promise<object[]> {
   console.log('[getReportsByTableAndPlace] Input:', {
@@ -74,7 +69,37 @@ async getReportsByTableAndPlace(number_table: number, id_place: number): Promise
   console.log('[getReportsByTableAndPlace] Return:', reports);
 
   return reports;
+
 }
+
+  async getAllPlaces(): Promise<object[]> {
+    console.log('[reportsModels.getAllPlaces] Input: none');
+
+    const result = await pool.query(
+      `SELECT 
+        name_place AS name,
+        cuantity_tables AS tables
+      FROM testify.vote_places
+      ORDER BY zone, name_place`
+    );
+
+    console.log('[reportsModels.getAllPlaces] Rows found:', result.rowCount);
+    console.log('[reportsModels.getAllPlaces] Return:', result.rows);
+    return result.rows;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

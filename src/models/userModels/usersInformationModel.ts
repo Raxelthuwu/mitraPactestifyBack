@@ -6,9 +6,9 @@ export class usersInformationModel{
 
 async getAssignedPlaceByUserId(id_user: number): Promise<object | null> {
   console.log('[getAssignedPlaceByUserId] Input:', { id_user });
-
   const result = await pool.query(
     `SELECT 
+       a.id_asignation,
        vp.name_place,
        vp.cuantity_tables
      FROM testify.asignations a
@@ -16,12 +16,9 @@ async getAssignedPlaceByUserId(id_user: number): Promise<object | null> {
      WHERE a.id_users = $1`,
     [id_user]
   );
-
   const assignedPlace = result.rows[0] ?? null;
-
   console.log('[getAssignedPlaceByUserId] Rows found:', result.rowCount);
   console.log('[getAssignedPlaceByUserId] Return:', assignedPlace);
-
   return assignedPlace;
 }
     

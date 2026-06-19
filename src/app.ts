@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import loginRouter from './routes/loginRouter/loginRoutes/loginRoutes.js';
 import logoutRouter from './routes/loginRouter/logoutRoutes/logoutRoutes.js';
 import userRouter from './routes/userInformationRouter/userInformationRoutes.js';
+import reportsRouter from './routes/reportsRouter/reportRoutes.js';
 
 dotenv.config();
 
@@ -49,5 +50,8 @@ app.get('/health', (req, res) => {
 app.use('/login', loginRouter);
 app.use('/logout', logoutRouter);
 app.use('/user', userRouter);
+app.use('/report', reportsRouter);
+app.use('/places', reportsRouter);
+
 
 export default app;
