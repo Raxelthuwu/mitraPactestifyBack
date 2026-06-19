@@ -8,7 +8,7 @@ interface ExcelUserRow {
   cc: bigint;
   phone: bigint | null;
   password: string;
-  role: string;
+  id_role: number;
   id_place: number | null;
 }
 
@@ -37,11 +37,20 @@ const parseExcelRow = (row: ExcelJS.Row): ExcelUserRow => {
   const ccValue = getCellValue(row, 'cc') || getCellValue(row, 'cedula');
   const phoneValue = getCellValue(row, 'phone') || getCellValue(row, 'telefono');
   const password = getCellValue(row, 'password') || getCellValue(row, 'contraseña');
-  const role = getCellValue(row, 'role') || getCellValue(row, 'rol');
+
+  const roleValue =
+    getCellValue(row, 'id_role') ||
+    getCellValue(row, 'rol') ||
+    getCellValue(row, 'role');
+
   const placeValue =
     getCellValue(row, 'id_place') ||
     getCellValue(row, 'puesto') ||
     getCellValue(row, 'codigo_puesto');
+
+  if (!name || !email || !ccValue || !password || !roleValue) {
+    throw new Error('Missing required user data');
+  }
 
   return {
     name,
@@ -49,39 +58,39 @@ const parseExcelRow = (row: ExcelJS.Row): ExcelUserRow => {
     cc: BigInt(ccValue),
     phone: phoneValue ? BigInt(phoneValue) : null,
     password,
-    role,
+    id_role: Number(roleValue),
     id_place: placeValue ? Number(placeValue) : null,
   };
 };
 
-const getRoleIdByName = async (role: string): Promise<number> => {
-  console.log('[subirIn.getRoleIdByName] Input:', { role });
+const validateRoleId = async (id_role: number): Promise<void> => {
+  console.log('[subirIn.validateRoleId] Input:', { id_role });
 
-  const result = await pool.query<{ id_role: number }>(
-    `SELECT id_role
-     FROM testify.roles
-     WHERE LOWER(type_rol) = LOWER($1)`,
-    [role]
+  const result = await pool.query<{ exists: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM testify.roles
+       WHERE id_role = $1
+     ) AS exists`,
+    [id_role]
   );
 
-  const id_role = result.rows[0]?.id_role;
+  const exists = result.rows[0]?.exists ?? false;
 
-  if (!id_role) {
-    throw new Error(`Role not found: ${role}`);
+  if (!exists) {
+    throw new Error(`Role id does not exist: ${id_role}`);
   }
 
-  console.log('[subirIn.getRoleIdByName] Return:', id_role);
-
-  return id_role;
+  console.log('[subirIn.validateRoleId] Role exists:', exists);
 };
 
-const upsertUser = async (user: ExcelUserRow, id_role: number): Promise<number> => {
+const upsertUser = async (user: ExcelUserRow): Promise<number> => {
   console.log('[subirIn.upsertUser] Input:', {
     name: user.name,
     email: user.email,
     cc: user.cc.toString(),
     phone: user.phone?.toString() ?? null,
-    role: user.role,
+    id_role: user.id_role,
     id_place: user.id_place,
     password: user.password ? '[PROVIDED]' : '[MISSING]',
   });
@@ -99,7 +108,14 @@ const upsertUser = async (user: ExcelUserRow, id_role: number): Promise<number> 
        cc = EXCLUDED.cc,
        phone = EXCLUDED.phone
      RETURNING id_user`,
-    [id_role, user.name, hashedPassword, user.email, user.cc, user.phone]
+    [
+      user.id_role,
+      user.name,
+      hashedPassword,
+      user.email,
+      user.cc,
+      user.phone,
+    ]
   );
 
   const id_user = result.rows[0]?.id_user;
@@ -152,8 +168,10 @@ const uploadUsersFromExcel = async (filePath: string): Promise<void> => {
 
     try {
       const user = parseExcelRow(row);
-      const id_role = await getRoleIdByName(user.role);
-      const id_user = await upsertUser(user, id_role);
+
+      await validateRoleId(user.id_role);
+
+      const id_user = await upsertUser(user);
 
       if (user.id_place) {
         await assignUserToPlace(id_user, user.id_place);
@@ -164,7 +182,7 @@ const uploadUsersFromExcel = async (filePath: string): Promise<void> => {
       console.log('[subirIn.uploadUsersFromExcel] Row processed:', {
         rowNumber,
         email: user.email,
-        role: user.role,
+        id_role: user.id_role,
         id_place: user.id_place,
       });
     } catch (error) {
