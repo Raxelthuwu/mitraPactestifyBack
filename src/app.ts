@@ -7,6 +7,7 @@ import loginRouter from './routes/loginRouter/loginRoutes/loginRoutes.js';
 import logoutRouter from './routes/loginRouter/logoutRoutes/logoutRoutes.js';
 import userRouter from './routes/userInformationRouter/userInformationRoutes.js';
 import reportsRouter from './routes/reportsRouter/reportRoutes.js';
+import placesRouter from './routes/placesRouter/placesRoutes.js';
 
 dotenv.config();
 
@@ -51,7 +52,7 @@ app.use('/login', loginRouter);
 app.use('/logout', logoutRouter);
 app.use('/user', userRouter);
 app.use('/report', reportsRouter);
-app.use('/places', reportsRouter);
+app.use('/places', placesRouter);
 
 
 export default app;
