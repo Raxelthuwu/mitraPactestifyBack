@@ -90,17 +90,23 @@ async getReportsByTableAndPlace(number_table: number, id_place: number): Promise
 
 
 
+async getPlaceIdByName(puesto: string): Promise<number | null> {
+  console.log('[reportsModels.getPlaceIdByName] Input:', { puesto });
 
+  const result = await pool.query<{ id_place: number }>(
+    `SELECT id_place
+     FROM testify.vote_places
+     WHERE name_place = $1`,
+    [puesto]
+  );
 
+  const id_place = result.rows[0]?.id_place ?? null;
 
+  console.log('[reportsModels.getPlaceIdByName] Rows found:', result.rowCount);
+  console.log('[reportsModels.getPlaceIdByName] Return:', id_place);
 
-
-
-
-
-
-
-
+  return id_place;
+}
 
 
 }

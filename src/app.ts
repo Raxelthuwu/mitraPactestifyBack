@@ -8,6 +8,7 @@ import logoutRouter from './routes/loginRouter/logoutRoutes/logoutRoutes.js';
 import userRouter from './routes/userInformationRouter/userInformationRoutes.js';
 import reportsRouter from './routes/reportsRouter/reportRoutes.js';
 import placesRouter from './routes/placesRouter/placesRoutes.js';
+import generateExcel from './routes/generateExcel/generateExcel.js'
 
 dotenv.config();
 
@@ -53,6 +54,6 @@ app.use('/logout', logoutRouter);
 app.use('/user', userRouter);
 app.use('/report', reportsRouter);
 app.use('/places', placesRouter);
-
+app.use('/reports', generateExcel);
 
 export default app;
