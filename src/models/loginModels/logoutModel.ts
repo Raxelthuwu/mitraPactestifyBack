@@ -43,7 +43,27 @@ export class logouthModel {
   return success;
 }
 
+//3
+async isTokenRevoked(token: string): Promise<boolean> {
+  console.log('[logouthModel.isTokenRevoked] Input:', {
+    token: token ? '[PROVIDED]' : '[MISSING]',
+  });
 
+  const result = await pool.query(
+    `SELECT 1
+     FROM testify.revoked_tokens
+     WHERE token = $1
+       AND expires_at > now()`,
+    [token]
+  );
+
+  const revoked = result.rowCount === 1;
+
+  console.log('[logouthModel.isTokenRevoked] Rows found:', result.rowCount);
+  console.log('[logouthModel.isTokenRevoked] Return:', revoked);
+
+  return revoked;
+}
 
 
 

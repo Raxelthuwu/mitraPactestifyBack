@@ -9,6 +9,9 @@ import userRouter from './routes/userInformationRouter/userInformationRoutes.js'
 import reportsRouter from './routes/reportsRouter/reportRoutes.js';
 import placesRouter from './routes/placesRouter/placesRoutes.js';
 import generateExcel from './routes/generateExcel/generateExcel.js'
+import { globalRateLimiter } from './middleware/limiters/globalLimiter.js';
+
+
 
 dotenv.config();
 
@@ -32,7 +35,7 @@ app.use(cors({
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json());
 
-
+app.use(globalRateLimiter);
 app.get('/health', (req, res) => {
   const response = {
     status: 'ok',

@@ -1,15 +1,18 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyToken, type TokenPayload } from '../utils/jwt.js';
+import { logouthModel } from '../models/loginModels/logoutModel.js';
 
 export interface AuthRequest extends Request {
   user?: TokenPayload;
 }
 
-export const authJWT = (
+const logoutModel = new logouthModel();
+
+export const authJWT = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   console.log('[authJWT] Authorization header:', req.headers.authorization ? '[PROVIDED]' : '[MISSING]');
 
   const authHeader = req.headers.authorization;
@@ -42,6 +45,21 @@ export const authJWT = (
 
   try {
     const decoded = verifyToken(token);
+
+    const tokenRevoked = await logoutModel.isTokenRevoked(token);
+
+    console.log('[authJWT] Token revoked status:', tokenRevoked);
+
+    if (tokenRevoked) {
+      console.error('[authJWT] Token is revoked');
+
+      res.status(401).json({
+        status: 401,
+        message: 'Unauthorized',
+      });
+
+      return;
+    }
 
     req.user = decoded;
 
