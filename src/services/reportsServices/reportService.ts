@@ -113,7 +113,27 @@ export class ReportsService {
 
 
 
+    async getReportsByPuestoAndTable(puesto: string, number_table: number): Promise<{ status: number; reports: object[] }> {
+    console.log('[ReportsService.getReportsByPuestoAndTable] Input:', { puesto, number_table });
 
+    try {
+        const id_place = await this.reportsModel.getPlaceIdByName(puesto);
+
+        if (!id_place) {
+        console.log('[ReportsService.getReportsByPuestoAndTable] Place not found');
+        return { status: 404, reports: [] };
+        }
+
+        const reports = await this.reportsModel.getReportsByTableAndPlace(number_table, id_place);
+
+        console.log('[ReportsService.getReportsByPuestoAndTable] Return:', { status: 200, reports });
+        return { status: 200, reports };
+
+    } catch (error) {
+        console.error('[ReportsService.getReportsByPuestoAndTable] Error:', error);
+        return { status: 500, reports: [] };
+    }
+    }
 
 
 

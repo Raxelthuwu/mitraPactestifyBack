@@ -31,10 +31,10 @@ export class ReportsController {
   async getReportsByTable(req: AuthRequest, res: Response): Promise<void> {
     console.log('[ReportsController.getReportsByTable] Request received');
 
-    const number_table = Number(req.query['table']);
-    const id_place = Number(req.query['place']);
+    const puesto = String(req.query['puesto'] ?? req.query['Puesto'] ?? '');
+    const number_table = Number(req.query['mesa'] ?? req.query['Mesa']);
 
-    const result = await this.reportsService.getReportsByTable(number_table, id_place);
+    const result = await this.reportsService.getReportsByPuestoAndTable(puesto, number_table);
 
     res.status(result.status).json(result);
   }

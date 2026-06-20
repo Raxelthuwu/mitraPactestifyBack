@@ -45,26 +45,22 @@ async logoutOrquester(
     token: token ? '[PROVIDED]' : '[MISSING]',
     expires_at,
   });
-
   try {
     const tokenRevoked = await this.revokeJwtToken(token, expires_at);
-
     console.log('[LogoutService.logoutOrquester] Token revoked:', tokenRevoked);
 
-    const userActivated = await this.logoutModel.setUserActive(id_user);
+    await this.logoutModel.deleteActiveToken(id_user);
+    console.log('[LogoutService.logoutOrquester] Active token deleted');
 
+    const userActivated = await this.logoutModel.setUserActive(id_user);
     console.log('[LogoutService.logoutOrquester] User activated:', userActivated);
 
     const success = tokenRevoked && userActivated;
-
     console.log('[LogoutService.logoutOrquester] Return:', success);
-
     return success;
   } catch (error) {
     console.error('[LogoutService.logoutOrquester] Error:', error);
-
     console.log('[LogoutService.logoutOrquester] Return:', false);
-
     return false;
   }
 }

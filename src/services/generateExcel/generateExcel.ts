@@ -78,10 +78,7 @@ export class ReportsService {
 
 
     async exportReports(number_table: number, puesto: string): Promise<Buffer> {
-        console.log('[ReportsService.exportReports] Input:', {
-            number_table,
-            puesto,
-        });
+        console.log('[ReportsService.exportReports] Input:', { number_table, puesto });
 
         const id_place = await this.getPlaceIdByName(puesto);
 
@@ -90,10 +87,7 @@ export class ReportsService {
             throw new Error('Place not found');
         }
 
-        const reports = await this.reportsModel.getReportsByTableAndPlace(
-            number_table,
-            id_place
-        );
+        const reports = await this.reportsModel.getReportsByTableAndPlace(number_table, id_place);
 
         console.log('[ReportsService.exportReports] Reports found:', reports.length);
 
@@ -107,26 +101,30 @@ export class ReportsService {
 
         this.addLogoToExcel(workbook, sheet);
 
-        sheet.mergeCells('C2:E2');
-        sheet.getCell('C2').value = `Reportes Lugar: ${puesto}`;
-        sheet.getCell('C2').font = {
+        sheet.mergeCells('D5:F5');
+        sheet.getCell('D5').value = `Reportes Lugar: ${puesto}`;
+        sheet.getCell('D5').font = {
             bold: true,
             size: 16,
             color: { argb: 'FF243B86' },
         };
 
-        sheet.mergeCells('C3:E3');
-        sheet.getCell('C3').value = `Mesa: ${number_table}`;
-        sheet.getCell('C3').font = {
+        sheet.mergeCells('D6:F6');
+        sheet.getCell('D6').value = `Mesa: ${number_table}`;
+        sheet.getCell('D6').font = {
             bold: true,
             size: 13,
             color: { argb: 'FF8E258D' },
         };
 
-        sheet.getRow(8).values = ['ID', 'Hora', 'Testigo', 'Gravedad', 'Reporte'];
+        const headerRow = sheet.getRow(8);
+        headerRow.values = ['ID', 'Hora', 'Testigo', 'Gravedad', 'Reporte'];
+        headerRow.commit();
 
         parsedReports.forEach((report) => {
-            sheet.addRow(report);
+            const r = report as { ID: string; Hora: string; Testigo: string; Gravedad: string; Reporte: string };
+            const row = sheet.addRow([r.ID, r.Hora, r.Testigo, r.Gravedad, r.Reporte]);
+            row.commit();
         });
 
         this.styleExcelSheet(sheet);
@@ -137,7 +135,7 @@ export class ReportsService {
         console.log('[ReportsService.exportReports] Return:', '[EXCEL_BUFFER]');
 
         return Buffer.from(excelBuffer);
-    }
+        }
 
 
 

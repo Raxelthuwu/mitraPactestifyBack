@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { LoginModel } from '../../models/loginModels/loginModel.js';
 import { generateToken } from '../../utils/jwt.js';
 import type { LoginUserData } from '../../models/interfacesModels/Users_interface.js';
+import { logouthModel } from '../../models/loginModels/logoutModel.js';
 
 interface LoginRequestData {
   correo: string;
@@ -23,9 +24,11 @@ interface LoginResponse {
 
 export class LoginService {
   private loginModel = new LoginModel();
+  private logoutModel = new logouthModel();
+
 
   constructor() {
-    console.log('[LoginService] Instance created');
+    console.log('[LoginService] Instance created')
   }
 
   //1
@@ -138,7 +141,7 @@ export class LoginService {
 
   
   //6 
-  async loginOrquester(data: LoginRequestData): Promise<LoginResponse> {
+async loginOrquester(data: LoginRequestData): Promise<LoginResponse> {
   console.log('[LoginService.loginOrquester] Input:', {
     correo: data.correo,
     cedula: data.cedula,
@@ -148,95 +151,49 @@ export class LoginService {
   try {
     const formattedData = this.formatLoginData(data);
 
-    const user = await this.getUserByCredentials(
-      formattedData.email,
-      formattedData.cc
-    );
+    const user = await this.getUserByCredentials(formattedData.email, formattedData.cc);
 
     if (!user) {
-      const response: LoginResponse = {
-        status: 400,
-        inicio: false,
-      };
-
       console.log('[LoginService.loginOrquester] User not found');
-      console.log('[LoginService.loginOrquester] Return:', response);
-
-      return response;
+      return { status: 400, inicio: false };
     }
 
     if (user.active === false) {
-      const response: LoginResponse = {
-        status: 400,
-        inicio: false,
-      };
-
-      console.log('[LoginService.loginOrquester] User already has an active session');
-      console.log('[LoginService.loginOrquester] Return:', response);
-
-      return response;
+      const hasToken = await this.logoutModel.hasActiveToken(user.id_user);
+      if (hasToken) {
+        console.log('[LoginService.loginOrquester] User already has an active session');
+        return { status: 400, inicio: false };
+      }
+      console.log('[LoginService.loginOrquester] Stale session detected, resetting');
+      await this.logoutModel.setUserActive(user.id_user);
     }
 
-    const passwordMatches = await this.comparePasswords(
-      formattedData.password,
-      user.password
-    );
+    const passwordMatches = await this.comparePasswords(formattedData.password, user.password);
 
     if (!passwordMatches) {
-      const response: LoginResponse = {
-        status: 400,
-        inicio: false,
-      };
-
       console.log('[LoginService.loginOrquester] Invalid password');
-      console.log('[LoginService.loginOrquester] Return:', response);
-
-      return response;
+      return { status: 400, inicio: false };
     }
 
     const token = this.generateLoginToken(user);
 
-    const userUpdated = await this.setUserInactive(
-      formattedData.email,
-      formattedData.cc
-    );
+    const userUpdated = await this.setUserInactive(formattedData.email, formattedData.cc);
 
     if (!userUpdated) {
-      const response: LoginResponse = {
-        status: 400,
-        inicio: false,
-      };
-
       console.log('[LoginService.loginOrquester] User status could not be updated');
-      console.log('[LoginService.loginOrquester] Return:', response);
-
-      return response;
+      return { status: 400, inicio: false };
     }
 
-    const response: LoginResponse = {
-      token,
-      status: 200,
-      inicio: true,
-    };
+    const jwtExpires = new Date();
+    jwtExpires.setHours(jwtExpires.getHours() + 2);
+    await this.logoutModel.saveActiveToken(user.id_user, token, jwtExpires);
 
-    console.log('[LoginService.loginOrquester] Return:', {
-      token: '[TOKEN]',
-      status: response.status,
-      inicio: response.inicio,
-    });
+    console.log('[LoginService.loginOrquester] Return:', { token: '[TOKEN]', status: 200, inicio: true });
+    return { token, status: 200, inicio: true };
 
-    return response;
   } catch (error) {
     console.error('[LoginService.loginOrquester] Error:', error);
-
-    const response: LoginResponse = {
-      status: 400,
-      inicio: false,
-    };
-
-    console.log('[LoginService.loginOrquester] Return:', response);
-
-    return response;
+    return { status: 400, inicio: false };
   }
 }
 
